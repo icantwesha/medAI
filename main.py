@@ -252,6 +252,11 @@ def add_records_disclaimer(reply: str) -> str:
     return f"{reply}{separator}{RECORDS_DISCLAIMER}"
 
 # ---------- API ----------
+@app.api_route("/", methods=["GET", "HEAD"])
+def health_check():
+    return {"status": "ok", "service": app.title}
+
+
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
     content: str = Field(max_length=2000)

@@ -1,3 +1,4 @@
+<img width="1897" height="1022" alt="image" src="https://github.com/user-attachments/assets/38895a3e-f85d-46c8-89a5-2162f2d9a1fc" />
 # MedAI — Patient Records & AI Assistant
 
 MedAI is a full-stack patient-record management demo that brings patient profiles, visit history, prescriptions, and appointments together in one clean dashboard. Its AI assistant can look up records through read-only database tools, answer questions with record-based context, and summarize a selected patient's documented history.

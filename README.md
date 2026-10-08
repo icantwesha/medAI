@@ -1,43 +1,94 @@
-# Patient AI Record System
+# MedAI — Patient Records & AI Assistant
 
-Supabase (database) + FastAPI (backend) + Groq (Qwen chatbot with tool use) + plain HTML frontend.
+MedAI is a full-stack patient-record management demo that brings patient profiles, visit history, prescriptions, and appointments together in one clean dashboard. Its AI assistant can look up records through read-only database tools, answer questions with record-based context, and summarize a selected patient's documented history.
 
-The frontend supports patient search, patient creation/edit/deletion, visit and prescription recording, appointment scheduling/status updates, and a read-only AI assistant. This is a local demo for fictional data, not a production clinical records system. The API URL is configured in the `api-base` meta tag in `index.html`.
+Built with **FastAPI**, **Supabase**, and **Groq**, MedAI is designed to demonstrate how an AI layer can make structured records easier to explore—not replace clinical judgment.
 
-## How the chatbot works
-1. User asks a question in the chat box.
-2. Backend sends it to Groq along with 4 tools (search patients, get history, find by diagnosis, list appointments).
-3. The model picks a read-only tool, the backend runs the matching Supabase query, and returns the rows to the model.
-4. The model writes a concise answer based on those rows. It may provide general educational information and topics to discuss with a licensed clinician, but must not diagnose, prescribe, or advise medication changes. The backend appends a consistent disclaimer.
+> **Demo project:** Use fictional data only. MedAI is not a clinical product and is not suitable for real patient information or care decisions.
 
-## Demo features
-- Search and refresh patient records; create, edit, and delete patients.
-- Select gender from the form; optional phone numbers accept 7–15 digits (with optional international `+` and common separators) and are validated by both the browser and API.
-- View the visit history and prescriptions for a patient, and add new visits or prescription records.
-- Schedule appointments and update their status.
-- Ask the read-only assistant questions about patient records, diagnosis history, and appointments.
-- Chat responses and patient summaries include source chips built from records actually returned by Supabase.
-- Summarize an open patient record with Groq; the model is prompted to summarize only supplied record data.
-- Use optional browser speech recognition to dictate a chat prompt where supported; review the transcript before sending.
-- Review a record-completeness percentage based on whether selected demographic fields and visit history are documented. It is not a medical-risk score.
+## What you can do
 
-These management features use the existing tables in `schema.sql`; no additional SQL migration is needed if you already ran that script.
+- **Manage patient records:** search, add, edit, and delete patient profiles.
+- **Track care history:** review visits and prescriptions, and record new visits or prescriptions.
+- **Coordinate appointments:** schedule appointments and update their status.
+- **Ask questions in natural language:** find patients, explore documented diagnoses, look up visit history, and list appointments through the AI assistant.
+- **See the evidence:** assistant answers and patient summaries can show source chips identifying the database records used.
+- **Summarize a patient record:** request a concise AI-generated summary of a patient's recorded details and visits.
+- **Use voice input:** dictate a prompt in supported browsers, then review it before sending.
+- **Check record completeness:** see whether selected demographic fields and visit history are documented. This is a documentation indicator, not a medical-risk score.
+- **Use the dashboard your way:** responsive layout, light/dark theme, and database-backed forms.
 
-## Setup
-1. Create a project at [supabase.com](https://supabase.com). In the project, open **SQL Editor > New query**, paste the contents of `schema.sql`, and run it. This creates the patient, visit, prescription, and appointment tables and inserts demo records. You do not need to create the tables separately.
-2. Copy `.env.example` to `.env` in this project directory. Fill in the Supabase project URL, the service-role key (Project Settings > API), and your Groq API key. The default model is `qwen/qwen3.8-27b`; change `MODEL` in `.env` if needed. Keep `.env` private; never put these keys in `index.html`.
-3. From this project directory, install dependencies and start the backend:
-   ```
-   pip install -r requirements.txt
-   uvicorn main:app --reload
-   ```
-4. Open `index.html` in a browser. If the backend runs at a different address, update the `api-base` meta tag near the top of `index.html`.
+## How the AI assistant works
 
-To change the demo records, edit and rerun the relevant `insert` statements in `schema.sql`, or use the Supabase **Table Editor** after creating the schema. For an already-created database, run only new/updated insert statements to avoid duplicating the sample rows.
+1. The browser sends the question and conversation history to the FastAPI backend.
+2. For record-specific questions, Groq can select from read-only tools for patient search, patient history, diagnosis lookup, and appointments.
+3. The backend runs the selected query against Supabase and returns its results to the model.
+4. The assistant writes a concise response using those results. The interface displays source chips derived from records returned by the tools—not sources invented by the model.
 
-## Notes for your report
-- API keys stay in the backend; the browser never sees them.
-- Use fictional data only; patient record context sent in assistant requests goes to Groq.
-- This demo has no sign-in, role-based access, audit trail, or production privacy controls. Do not deploy it for real patient data.
-- The backend currently uses a Supabase service-role key, which bypasses row-level security. Keep the backend private and never expose that key in frontend code.
-- Before any real deployment, add authentication/authorization, least-privilege database access, audit logging, secure hosting, data retention controls, and an appropriate privacy/compliance review.
+The assistant can provide general educational information, but it must not diagnose, prescribe, recommend medication changes, or create a personalized treatment plan. Record summaries are generated from supplied database records.
+
+## Technology
+
+| Layer | Technology |
+| --- | --- |
+| User interface | HTML, CSS, and JavaScript |
+| API | Python and FastAPI |
+| Database | Supabase (PostgreSQL) |
+| AI | Groq API with a configurable chat-completion model |
+
+## Get started
+
+### Requirements
+
+- Python 3.10 or newer
+- A [Supabase](https://supabase.com/) project
+- A [Groq API key](https://console.groq.com/keys)
+
+### 1. Create the database
+
+In your Supabase project, open **SQL Editor → New query**, paste in [`schema.sql`](./schema.sql), and run it once. It creates the patients, visits, prescriptions, and appointments tables and inserts fictional sample records.
+
+If you have already run the schema, do not run the full script again: it creates tables and inserts sample rows. Use Supabase's **Table Editor** to manage existing records, or run only the specific SQL statements you need.
+
+### 2. Configure credentials
+
+Copy `.env.example` to `.env` in the project directory, then set:
+
+```dotenv
+SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+SUPABASE_SERVICE_KEY=your-supabase-service-role-key
+GROQ_API_KEY=your-groq-api-key
+MODEL=qwen/qwen3.8-27b
+```
+
+Get the Supabase URL and service-role key from your project's API settings. The model can be changed using `MODEL` if your Groq account supports a different model.
+
+**Keep `.env` private.** Never commit it, share its contents, or put API keys in frontend code. The service-role key has elevated database access and must remain on the backend.
+
+### 3. Install dependencies and start the API
+
+From the project directory, run:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --reload
+```
+
+The API will be available at `http://127.0.0.1:8000`.
+
+### 4. Open the app
+
+Open `index.html` in a browser. By default, it sends API requests to `http://localhost:8000`. To use a different backend URL, update the `api-base` meta tag near the top of `index.html`.
+
+## Project layout
+
+```text
+.
+├── index.html       # Dashboard and browser-side application
+├── main.py          # FastAPI routes, Supabase access, and Groq integration
+├── schema.sql       # Database schema and fictional seed data
+├── requirements.txt # Python dependencies
+└── .env.example     # Credential template (copy to .env)
+```

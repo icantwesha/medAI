@@ -2,11 +2,13 @@ import json
 import os
 import re
 from datetime import date, datetime
+from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from supabase import create_client
 from groq import Groq
@@ -253,6 +255,11 @@ def add_records_disclaimer(reply: str) -> str:
 
 # ---------- API ----------
 @app.api_route("/", methods=["GET", "HEAD"])
+def dashboard():
+    return FileResponse(Path(__file__).with_name("index.html"))
+
+
+@app.get("/health")
 def health_check():
     return {"status": "ok", "service": app.title}
 

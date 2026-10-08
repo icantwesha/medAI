@@ -78,11 +78,11 @@ python -m uvicorn main:app --reload
 
 The API will be available at `http://127.0.0.1:8000`.
 
-The API root (`/`) returns a small health response for deployment checks. The interactive dashboard is a separate static page; host `index.html` on a static web host and set its `api-base` meta tag to your deployed API's public HTTPS URL. Do not leave it pointing at `localhost` in a deployed frontend.
+The API root (`/`) serves the dashboard, and `/health` returns a small health response for deployment checks. When opened locally, the dashboard uses `http://localhost:8000`; when served by the deployed API, it automatically uses the same origin. If you host the frontend separately, set the `api-base` meta tag near the top of `index.html` to your API's public HTTPS URL.
 
 ### 4. Open the app
 
-Open `index.html` in a browser. By default, it sends API requests to `http://localhost:8000`. To use a different backend URL, update the `api-base` meta tag near the top of `index.html`.
+For local development, open `index.html` in a browser while the API is running. Alternatively, visit `http://127.0.0.1:8000/` to load the dashboard directly from FastAPI.
 
 ## Project layout
 

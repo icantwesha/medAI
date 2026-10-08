@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="api-base" content="http://localhost:8000">
+<meta name="api-base" content="">
 <title>MedAI · Patient records</title>
 <script>try{var t=localStorage.getItem("medai-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -227,7 +227,9 @@ dialog::backdrop{background:#07121699;backdrop-filter:blur(2px)}dialog h2{margin
 </dialog>
 
 <script>
-const API=(document.querySelector('meta[name="api-base"]')?.content||"http://localhost:8000").replace(/\/+$/,"");
+const configuredApiBase=document.querySelector('meta[name="api-base"]')?.content.trim();
+const localHosts=["localhost","127.0.0.1"];
+const API=(configuredApiBase||(location.protocol==="file:"||localHosts.includes(location.hostname)?"http://localhost:8000":location.origin)).replace(/\/+$/,"");
 const state={patients:[],appointments:[],history:[],selectedPatientId:null,editingPatientId:null};
 const byId=id=>document.getElementById(id);
 const rows=byId("rows"), search=byId("search"), status=byId("record-status");

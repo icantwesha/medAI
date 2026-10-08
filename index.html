@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="api-base" content="http://localhost:8000">
+<title>MedAI · Patient records</title>
+<script>try{var t=localStorage.getItem("medai-theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef4f5;--panel:#fff;--ink:#0f2b30;--mute:#5f7a80;--line:#dbe6e8;--accent:#0f8a92;--accent-ink:#fff;--soft:#e2f2f3;--bot:#e8f3f4;--danger:#b3261e;--side:#0a2f35;--side-ink:#cfe5e7;--shadow:0 1px 2px rgba(10,47,53,.06),0 10px 28px rgba(10,47,53,.07)}
+:root[data-theme=dark]{--bg:#091316;--panel:#102127;--ink:#e4f0f1;--mute:#8aa5ab;--line:#1f353b;--accent:#38b6c0;--accent-ink:#04181b;--soft:#14313a;--bot:#16303a;--danger:#ff8d8d;--side:#06191d;--shadow:0 1px 2px #0006,0 10px 28px #0004}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{--sw:248px;--cw:380px;margin:0;font:15px/1.55 "Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-columns:var(--sw) minmax(0,1fr) var(--cw);min-height:100vh;transition:grid-template-columns .25s ease}
+body.chat-closed{--cw:0px}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.side{position:sticky;top:0;height:100vh;background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;padding:18px 14px;overflow:hidden;z-index:30}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 6px 24px;color:#fff;white-space:nowrap}
+.brand svg{width:36px;height:36px;flex:none}.brand b{font-size:21px;letter-spacing:-.02em;line-height:1.1;display:block}
+.brand small{font-size:11.5px;color:var(--side-ink);opacity:.7;font-weight:500}
+.nav{display:grid;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:inherit;text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+.nav a:hover{background:#ffffff14}.nav a.active{background:#ffffff22;color:#fff}
+.side-foot{margin-top:auto;font-size:12.5px;opacity:.75;padding:12px;border-top:1px solid #ffffff22}
+.scrim{display:none;position:fixed;inset:0;background:#0009;z-index:25}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:12px 24px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .crumb{font-weight:600;color:var(--mute)}.grow{flex:1}
+.theme-moon{display:block}.theme-sun{display:none}:root[data-theme=dark] .theme-moon{display:none}:root[data-theme=dark] .theme-sun{display:block}
+main{min-width:0}.page{padding:24px;max-width:1100px}
+h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}h2{font-size:17px;margin:0}h3{font-size:15px;margin:0 0 8px}
+.sub,.muted{color:var(--mute)}.sub{margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:6px}
+.stat,.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.stat{display:flex;align-items:center;gap:14px}.stat strong{display:block;font-size:26px;line-height:1.1}.stat span{color:var(--mute);font-size:13px}
+.chip{width:46px;height:46px;border-radius:12px;background:var(--soft);color:var(--accent);display:grid;place-items:center}
+.panel{margin:18px 0}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}.toolbar input{max-width:340px}.toolbar .muted{margin:0;font-size:13px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-weight:600;color:var(--mute);font-size:13px;background:color-mix(in srgb,var(--soft) 55%,var(--panel))}
+tbody tr:hover{background:color-mix(in srgb,var(--soft) 45%,transparent)}tr:last-child td{border-bottom:0}
+.namecell{display:flex;align-items:center;gap:10px;font-weight:600}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent);display:inline-grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.actions{display:flex;gap:6px;white-space:nowrap}
+button{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;padding:7px 12px;cursor:pointer;transition:background .15s,transform .1s}
+button:hover{background:var(--soft)}button:active{transform:translateY(1px)}
+button.primary{border:0;background:var(--accent);color:var(--accent-ink);font-weight:600}button.primary:hover{filter:brightness(1.08);background:var(--accent)}
+button.danger{color:var(--danger)}button:disabled{opacity:.6;cursor:wait}
+.icon-btn{width:38px;height:38px;padding:0;display:grid;place-items:center}
+.btn-ic{display:inline-flex;align-items:center;gap:7px}.btn-ic .ic{width:17px;height:17px}
+input,select,textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+td select{width:auto;padding:5px 8px}textarea{min-height:80px;resize:vertical}
+form.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+form.fields label{display:grid;gap:4px;font-size:13px;color:var(--mute);font-weight:500}
+form.fields .wide{grid-column:1/-1}form.fields .form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 18px}
+.detail-grid div{min-width:0;background:var(--bg);border-radius:10px;padding:10px 12px}.detail-grid dt{font-size:12px;color:var(--mute)}.detail-grid dd{margin:2px 0 0;overflow-wrap:anywhere;font-weight:600}
+.visit{border-top:1px solid var(--line);padding:12px 0}.visit:first-child{border-top:0}.visit p{margin:4px 0}
+.chat{position:sticky;top:0;height:100vh;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-width:0;overflow:hidden;z-index:40}
+body.chat-closed .chat{visibility:hidden;border:0}
+.chat header{display:flex;align-items:center;gap:11px;padding:16px;border-bottom:1px solid var(--line)}
+.chat header .chip{width:38px;height:38px}.chat header p{margin:0;font-size:12.5px;color:var(--mute);line-height:1.3}
+#log{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:90%;padding:10px 13px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.u{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}.b{align-self:flex-start;background:var(--bot);border-bottom-left-radius:4px}
+.b p{margin:0}.b p+p{margin-top:8px}.b ul,.b ol{margin:0;padding-left:22px}.b li+li{margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}.chips button{font-size:12.5px;border-radius:99px;padding:5px 11px}
+#chat-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}#chat-form input{flex:1;min-width:0}
+.source-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.source-chip{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:11px;color:var(--mute);background:var(--panel)}
+.completeness{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px;margin:14px 0}
+.completeness-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.completeness strong{font-size:20px}
+.completeness progress{width:100%;height:10px;margin:10px 0;accent-color:var(--accent)}
+.completeness ul{margin:4px 0 0;padding-left:20px;color:var(--mute)}
+.summary-box{background:var(--soft);border-radius:10px;padding:12px;margin:12px 0;white-space:pre-wrap}
+.summary-box[hidden]{display:none}
+.voice-status{font-size:11px;color:var(--mute);padding:0 16px 8px;min-height:1.3em}
+button.icon-btn.listening{color:var(--danger);border-color:var(--danger)}
+dialog{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(560px,calc(100% - 24px));max-height:90vh;overflow:auto;box-shadow:0 24px 60px #0005}
+dialog::backdrop{background:#07121699;backdrop-filter:blur(2px)}dialog h2{margin-bottom:14px}
+.field-error{color:var(--danger);font-size:12px;min-height:1em}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(min-width:901px){body.side-collapsed{--sw:76px}body.side-collapsed .label{display:none}body.side-collapsed .nav a{justify-content:center}}
+@media(max-width:900px){
+ body{display:block}.side{position:fixed;left:0;top:0;width:264px;transform:translateX(-100%);transition:transform .25s}
+ body.side-open .side{transform:none}body.side-open .scrim{display:block}
+ .chat{position:fixed;right:0;top:0;width:min(420px,100%);transition:transform .25s}body.chat-closed .chat{transform:translateX(100%)}
+ .top{padding:12px 16px}.page{padding:16px}.detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}form.fields{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+ <symbol id="i-home" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
+ <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+ <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></symbol>
+ <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+ <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+ <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+</svg>
+<nav class="side" aria-label="Main">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2bc4c9"/><stop offset="1" stop-color="#0b6e7a"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M16 8v16M8 16h16" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="23.5" cy="8.5" r="2.4" fill="#b8f7ee"/><circle cx="8.5" cy="23.5" r="1.8" fill="#b8f7ee" opacity=".7"/></svg>
+    <span class="label"><b>MedAI</b><small>Smart patient records</small></span>
+  </div>
+  <div class="nav">
+    <a href="#overview" class="active"><svg class="ic"><use href="#i-home"/></svg><span class="label">Overview</span></a>
+    <a href="#patients-section"><svg class="ic"><use href="#i-users"/></svg><span class="label">Patients</span></a>
+    <a href="#appointments-section"><svg class="ic"><use href="#i-cal"/></svg><span class="label">Appointments</span></a>
+    <a href="#" data-chat="1"><svg class="ic"><use href="#i-chat"/></svg><span class="label">Assistant</span></a>
+  </div>
+</nav>
+<div class="scrim" id="scrim"></div>
+<main>
+  <div class="top">
+    <button class="icon-btn" id="side-toggle" type="button" aria-label="Toggle navigation"><svg class="ic"><use href="#i-menu"/></svg></button>
+    <span class="crumb">Hospital records</span><span class="grow"></span>
+    <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch light or dark theme"><svg class="ic theme-moon"><use href="#i-moon"/></svg><svg class="ic theme-sun"><use href="#i-sun"/></svg></button>
+    <button class="primary btn-ic" id="chat-toggle" type="button"><svg class="ic"><use href="#i-chat"/></svg>Assistant</button>
+  </div>
+  <div class="page">
+  <section id="overview">
+    <h1>Patient records</h1>
+    <p class="sub">Manage patient details, visits and appointments in one place.</p>
+    <div class="stats">
+      <div class="stat"><div class="chip"><svg class="ic"><use href="#i-users"/></svg></div><div><strong id="patient-count">—</strong><span>Patients</span></div></div>
+      <div class="stat"><div class="chip"><svg class="ic"><use href="#i-cal"/></svg></div><div><strong id="appointment-count">—</strong><span>Scheduled appointments</span></div></div>
+    </div>
+  </section>
+  <section class="panel" id="patients-section">
+    <div class="panel-head"><h2>Patients</h2><button class="primary btn-ic" id="add-patient" type="button"><svg class="ic"><use href="#i-plus"/></svg>Add patient</button></div>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search name, blood group, allergies…" aria-label="Search patients">
+      <button id="refresh" class="btn-ic" type="button"><svg class="ic"><use href="#i-refresh"/></svg>Refresh</button>
+      <p class="muted" id="record-status" role="status" aria-live="polite">Loading records…</p>
+    </div>
+    <div class="tablewrap"><table><thead><tr><th>Name</th><th>Date of birth</th><th>Blood group</th><th>Allergies</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </section>
+  <section class="panel" id="patient-detail" hidden>
+    <div class="panel-head"><h2 id="detail-title">Patient details</h2><div class="actions"><button id="summarize-patient" type="button">Summarize this patient</button><button id="add-visit" type="button">Add visit</button><button id="close-detail" type="button">Close</button></div></div>
+    <dl class="detail-grid" id="detail-fields"></dl>
+    <section class="completeness" aria-label="Record completeness">
+      <div class="completeness-head"><h3>Record completeness</h3><strong id="completeness-score">—</strong></div>
+      <progress id="completeness-progress" max="100" value="0" aria-label="Record completeness percentage"></progress>
+      <p class="muted" id="completeness-caption">This measures documented fields only, not medical risk.</p>
+      <ul id="completeness-missing"></ul>
+    </section>
+    <section class="summary-box" id="patient-summary" hidden aria-live="polite"></section>
+    <h3>Visit history</h3>
+    <div id="visit-list" class="muted">Select a patient to view history.</div>
+  </section>
+  <section class="panel" id="appointments-section">
+    <div class="panel-head"><h2>Appointments</h2><span class="muted">Update status as appointments change.</span></div>
+    <form class="fields" id="appointment-form">
+      <label>Patient<select name="patient_id" id="appointment-patient" required></select></label>
+      <label>Doctor<input name="doctor_name" maxlength="160" placeholder="Doctor name"></label>
+      <label class="wide">Date and time<input name="appt_time" type="datetime-local" required></label>
+      <div class="form-actions"><button class="primary" type="submit">Schedule appointment</button></div>
+    </form>
+    <div class="tablewrap"><table><thead><tr><th>When</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
+  </section>
+  </div>
+</main>
+<aside class="chat" aria-label="Records assistant">
+  <header><div class="chip"><svg class="ic"><use href="#i-chat"/></svg></div><div class="grow"><h2>MedAI assistant</h2></div><button class="icon-btn" id="chat-close" type="button" aria-label="Close assistant"><svg class="ic"><use href="#i-x"/></svg></button></header>
+  <div id="log" aria-live="polite"><div class="m b">Ask about a patient, a diagnosis in the history, or scheduled appointments.</div></div>
+  <div class="muted" style="padding:0 16px 6px;font-size:12px">Try asking</div>
+  <div class="chips" id="chips"></div>
+  <div class="voice-status" id="voice-status" role="status" aria-live="polite"></div>
+  <form id="chat-form"><input id="question" placeholder="Ask about the records" autocomplete="off" aria-label="Question" maxlength="2000"><button class="icon-btn" id="voice-input" type="button" aria-label="Start voice input" title="Start voice input">🎙</button><button class="primary" id="send" type="submit">Send</button></form>
+</aside>
+
+<dialog id="patient-dialog">
+  <h2 id="patient-dialog-title">Add patient</h2>
+  <form class="fields" id="patient-form">
+    <label class="wide">Full name<input name="name" required maxlength="160"></label>
+    <label>Date of birth<input name="dob" type="date"></label>
+    <label>Gender
+      <select name="gender">
+        <option value="">Not specified</option>
+        <option value="F">Female</option>
+        <option value="M">Male</option>
+        <option value="Non-binary">Non-binary</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
+    </label>
+    <label>Phone number
+      <input name="phone" type="tel" inputmode="tel" maxlength="40" autocomplete="tel"
+        pattern="\+?[0-9][0-9(). -]{5,30}" title="Use 7–15 digits; spaces, parentheses, hyphens, and a leading + are allowed."
+        placeholder="+1 555 123 4567" aria-describedby="phone-error">
+      <span class="field-error" id="phone-error" role="status" aria-live="polite"></span>
+    </label>
+    <label>Blood group<select name="blood_group"><option value="">Not specified</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></label>
+    <label class="wide">Allergies<textarea name="allergies" maxlength="1000" placeholder="Enter known allergies, or leave blank if unknown"></textarea></label>
+    <div class="form-actions"><button type="button" data-close="patient-dialog">Cancel</button><button class="primary" type="submit">Save patient</button></div>
+  </form>
+</dialog>
+
+<dialog id="visit-dialog">
+  <h2>Add visit</h2>
+  <form class="fields" id="visit-form">
+    <label>Date<input name="visit_date" type="date" required></label>
+    <label>Doctor<input name="doctor_name" maxlength="160"></label>
+    <label class="wide">Symptoms<textarea name="symptoms" maxlength="2000"></textarea></label>
+    <label class="wide">Recorded diagnosis<textarea name="diagnosis" maxlength="1000"></textarea></label>
+    <label class="wide">Notes<textarea name="notes" maxlength="4000"></textarea></label>
+    <div class="form-actions"><button type="button" data-close="visit-dialog">Cancel</button><button class="primary" type="submit">Save visit</button></div>
+  </form>
+</dialog>
+
+<dialog id="prescription-dialog">
+  <h2>Add prescription record</h2>
+  <form class="fields" id="prescription-form">
+    <label class="wide">Medicine<input name="medicine" required maxlength="200"></label>
+    <label>Dosage<input name="dosage" maxlength="200"></label>
+    <label>Duration<input name="duration" maxlength="200"></label>
+    <div class="form-actions"><button type="button" data-close="prescription-dialog">Cancel</button><button class="primary" type="submit">Save prescription</button></div>
+  </form>
+</dialog>
+
+<script>
+const API=(document.querySelector('meta[name="api-base"]')?.content||"http://localhost:8000").replace(/\/+$/,"");
+const state={patients:[],appointments:[],history:[],selectedPatientId:null,editingPatientId:null};
+const byId=id=>document.getElementById(id);
+const rows=byId("rows"), search=byId("search"), status=byId("record-status");
+const patientDialog=byId("patient-dialog"), visitDialog=byId("visit-dialog"), prescriptionDialog=byId("prescription-dialog");
+const log=byId("log"), question=byId("question"), send=byId("send");
+
+async function request(path,options={}){
+  const response=await fetch(`${API}${path}`,{...options,headers:{"Content-Type":"application/json",...options.headers}});
+  if(!response.ok){
+    let message=`Request failed (${response.status})`;
+    try{const body=await response.json();if(body.detail)message=body.detail}catch{}
+    throw new Error(message);
+  }
+  return response.status===204?null:response.json();
+}
+function cell(row,text){const td=document.createElement("td");td.textContent=text??"";row.appendChild(td);return td}
+function button(label,action,kind=""){
+  const b=document.createElement("button");b.type="button";b.textContent=label;b.dataset.action=action;if(kind)b.className=kind;return b;
+}
+function dateText(value){if(!value)return "—";const parsed=new Date(value);return Number.isNaN(parsed.valueOf())?value:parsed.toLocaleDateString()}
+function initials(name){return String(name||"?").trim().split(/\s+/).slice(0,2).map(word=>word[0]).join("").toUpperCase()}
+function phoneError(value){
+  const phone=value.trim();
+  if(!phone)return "";
+  if(!/^\+?[0-9][0-9(). -]*$/.test(phone))return "Use digits with optional spaces, parentheses, hyphens, or a leading +.";
+  const digits=phone.replace(/\D/g,"");
+  return digits.length<7||digits.length>15?"Phone number must contain 7 to 15 digits.":"";
+}
+function normalizePhone(value){
+  const phone=value.trim();
+  if(!phone)return "";
+  return `${phone.startsWith("+")?"+":""}${phone.replace(/\D/g,"")}`;
+}
+const phoneInput=byId("patient-form").elements.phone;
+function updatePhoneValidity(){
+  const message=phoneError(phoneInput.value);
+  phoneInput.setCustomValidity(message);
+  byId("phone-error").textContent=message;
+}
+phoneInput.addEventListener("input",updatePhoneValidity);
+function renderPatients(){
+  const term=search.value.trim().toLocaleLowerCase();
+  const visible=state.patients.filter(p=>[p.name,p.gender,p.blood_group,p.allergies,p.phone]
+    .some(value=>String(value||"").toLocaleLowerCase().includes(term)));
+  rows.replaceChildren();
+  for(const patient of visible){
+    const row=document.createElement("tr");
+    const nameCell=cell(row,"");nameCell.className="namecell";
+    const avatar=document.createElement("span");avatar.className="avatar";avatar.textContent=initials(patient.name);
+    const nameText=document.createElement("span");nameText.textContent=patient.name;nameCell.append(avatar,nameText);
+    cell(row,dateText(patient.dob));cell(row,patient.blood_group||"—");cell(row,patient.allergies||"—");
+    const actions=cell(row,"");actions.className="actions";
+    const detail=button("View","view");detail.dataset.id=patient.id;actions.appendChild(detail);
+    const edit=button("Edit","edit");edit.dataset.id=patient.id;actions.appendChild(edit);
+    const remove=button("Delete","delete","danger");remove.dataset.id=patient.id;actions.appendChild(remove);
+    rows.appendChild(row);
+  }
+  if(!visible.length){const row=document.createElement("tr");cell(row,state.patients.length?"No patients match this search.":"No patient records found.");row.firstChild.colSpan=5;rows.appendChild(row)}
+  status.textContent=`Showing ${visible.length} of ${state.patients.length} patients`;
+  byId("patient-count").textContent=state.patients.length;
+  const patientSelect=byId("appointment-patient"), selected=patientSelect.value;
+  patientSelect.replaceChildren();
+  for(const p of state.patients){const option=document.createElement("option");option.value=p.id;option.textContent=p.name;patientSelect.appendChild(option)}
+  if(state.patients.some(p=>String(p.id)===selected))patientSelect.value=selected;
+  renderSuggestions();
+}
+async function loadPatients(){
+  byId("refresh").disabled=true;status.textContent="Loading patients…";
+  try{state.patients=await request("/patients");renderPatients();if(state.selectedPatientId)await loadPatientDetail(state.selectedPatientId)}
+  catch(error){status.textContent=`Unable to load patients: ${error.message}`;rows.replaceChildren()}
+  finally{byId("refresh").disabled=false}
+}
+async function loadAppointments(){
+  const body=byId("appointment-rows");
+  try{
+    state.appointments=await request("/appointments");body.replaceChildren();
+    const scheduled=state.appointments.filter(a=>a.status==="scheduled");
+    byId("appointment-count").textContent=scheduled.length;
+    for(const appointment of state.appointments){
+      const row=document.createElement("tr");cell(row,new Date(appointment.appt_time).toLocaleString());cell(row,appointment.patients?.name||"Unknown patient");cell(row,appointment.doctor_name||"—");
+      const td=cell(row,"");const select=document.createElement("select");select.setAttribute("aria-label",`Status for appointment ${appointment.id}`);
+      for(const value of ["scheduled","completed","cancelled"]){const option=document.createElement("option");option.value=value;option.textContent=value;select.appendChild(option)}
+      select.value=appointment.status;select.dataset.appointmentId=appointment.id;td.appendChild(select);body.appendChild(row);
+    }
+    if(!state.appointments.length){const row=document.createElement("tr");cell(row,"No appointments yet.");row.firstChild.colSpan=4;body.appendChild(row)}
+  }catch(error){body.replaceChildren();const row=document.createElement("tr");cell(row,`Unable to load appointments: ${error.message}`);row.firstChild.colSpan=4;body.appendChild(row)}
+}
+async function loadPatientDetail(id){
+  const section=byId("patient-detail");section.hidden=false;
+  byId("detail-title").textContent="Loading patient…";
+  try{
+    const result=await request(`/patients/${id}`);state.selectedPatientId=id;
+    byId("detail-title").textContent=result.patient.name;
+    byId("patient-summary").hidden=true;
+    updateCompleteness(result.patient,result.visits||[]);
+    const details=byId("detail-fields");details.replaceChildren();
+    for(const [label,value] of [["Date of birth",dateText(result.patient.dob)],["Gender",result.patient.gender],["Phone",result.patient.phone],["Blood group",result.patient.blood_group],["Allergies",result.patient.allergies]]){
+      const wrapper=document.createElement("div"),dt=document.createElement("dt"),dd=document.createElement("dd");
+      dt.textContent=label;dd.textContent=value||"Not recorded";wrapper.append(dt,dd);details.appendChild(wrapper);
+    }
+    const visits=byId("visit-list");visits.replaceChildren();
+    if(!result.visits.length){visits.textContent="No visit history recorded."}
+    for(const visit of result.visits){
+      const item=document.createElement("article");item.className="visit";
+      const title=document.createElement("strong");title.textContent=`${dateText(visit.visit_date)}${visit.doctor_name?` · ${visit.doctor_name}`:""}`;item.appendChild(title);
+      for(const [label,value] of [["Symptoms",visit.symptoms],["Recorded diagnosis",visit.diagnosis],["Notes",visit.notes]]){
+        if(value){const p=document.createElement("p");p.textContent=`${label}: ${value}`;item.appendChild(p)}
+      }
+      for(const prescription of visit.prescriptions||[]){const p=document.createElement("p");p.textContent=`Prescription: ${prescription.medicine||""} ${prescription.dosage||""} ${prescription.duration||""}`.trim();item.appendChild(p)}
+      const addPrescription=button("Add prescription","add-prescription");addPrescription.dataset.id=visit.id;item.appendChild(addPrescription);
+      visits.appendChild(item);
+    }
+    section.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(error){byId("detail-title").textContent="Could not load patient";byId("visit-list").textContent=error.message}
+}
+function openPatientForm(patient=null){
+  state.editingPatientId=patient?.id??null;
+  byId("patient-dialog-title").textContent=patient?"Edit patient":"Add patient";
+  const form=byId("patient-form");form.reset();
+  phoneInput.setCustomValidity("");
+  byId("phone-error").textContent="";
+  if(patient)for(const [key,value] of Object.entries(patient)){if(form.elements[key])form.elements[key].value=value??""}
+  updatePhoneValidity();
+  patientDialog.showModal();
+}
+function addMessage(text,kind){const node=document.createElement("div");node.className=`m ${kind}`;node.textContent=text;log.appendChild(node);log.scrollTop=log.scrollHeight;return node}
+function appendInlineMarkdown(parent,text){
+  const pattern=/\*\*(.+?)\*\*/g;
+  let start=0,match;
+  while((match=pattern.exec(text))){
+    parent.append(document.createTextNode(text.slice(start,match.index)));
+    const strong=document.createElement("strong");strong.textContent=match[1];parent.append(strong);
+    start=pattern.lastIndex;
+  }
+  parent.append(document.createTextNode(text.slice(start)));
+}
+function renderAssistantReply(container,text){
+  container.replaceChildren();
+  let currentList=null,currentType=null,paragraph=null;
+  for(const line of text.split(/\r?\n/)){
+    const ordered=line.match(/^\s*\d+\.\s+(.+)$/),unordered=line.match(/^\s*[-*]\s+(.+)$/);
+    const itemText=ordered?.[1]||unordered?.[1];
+    const type=ordered?"ol":unordered?"ul":null;
+    if(type){
+      paragraph=null;
+      if(type!==currentType){currentList=document.createElement(type);container.append(currentList);currentType=type}
+      const item=document.createElement("li");appendInlineMarkdown(item,itemText);currentList.append(item);
+    }else if(line.trim()){
+      currentList=null;currentType=null;
+      if(!paragraph){paragraph=document.createElement("p");container.append(paragraph)}
+      else paragraph.append(document.createElement("br"));
+      appendInlineMarkdown(paragraph,line);
+    }else{
+      paragraph=null;currentList=null;currentType=null;
+    }
+  }
+}
+function renderSourceChips(container,sources){
+  if(!Array.isArray(sources)||!sources.length)return;
+  const list=document.createElement("div");list.className="source-chips";list.setAttribute("aria-label","Records used");
+  for(const source of sources){
+    if(!source||typeof source.label!=="string")continue;
+    const chip=document.createElement("span");chip.className="source-chip";chip.textContent=`Source: ${source.label}`;
+    list.appendChild(chip);
+  }
+  if(list.childElementCount)container.appendChild(list);
+}
+function updateCompleteness(patient,visits){
+  const checks=[
+    ["Date of birth",patient.dob],
+    ["Gender",patient.gender],
+    ["Phone number",patient.phone],
+    ["Blood group",patient.blood_group],
+    ["Allergy status",patient.allergies],
+    ["Visit history",visits.length>0]
+  ];
+  const missing=checks.filter(([,value])=>!value).map(([label])=>label);
+  const score=Math.round(((checks.length-missing.length)/checks.length)*100);
+  byId("completeness-score").textContent=`${score}%`;
+  byId("completeness-progress").value=score;
+  const list=byId("completeness-missing");list.replaceChildren();
+  if(missing.length){
+    byId("completeness-caption").textContent="Documented fields only—not a medical risk score. Items not recorded:";
+    for(const label of missing){const item=document.createElement("li");item.textContent=label;list.appendChild(item)}
+  }else{
+    byId("completeness-caption").textContent="All tracked record fields are documented. This is not a medical risk score.";
+  }
+}
+
+search.addEventListener("input",renderPatients);
+byId("refresh").addEventListener("click",()=>{loadPatients();loadAppointments()});
+byId("add-patient").addEventListener("click",()=>openPatientForm());
+byId("close-detail").addEventListener("click",()=>{byId("patient-detail").hidden=true;state.selectedPatientId=null});
+byId("summarize-patient").addEventListener("click",async()=>{
+  if(!state.selectedPatientId)return;
+  const target=byId("patient-summary"),button=byId("summarize-patient");
+  target.hidden=false;target.textContent="Preparing a record summary…";button.disabled=true;
+  try{
+    const result=await request(`/patients/${state.selectedPatientId}/summary`,{method:"POST"});
+    target.textContent=result.summary;
+    renderSourceChips(target,result.sources);
+  }catch(error){target.textContent=`Could not summarize this patient: ${error.message}`}
+  finally{button.disabled=false}
+});
+byId("add-visit").addEventListener("click",()=>{if(!state.selectedPatientId)return;byId("visit-form").reset();byId("visit-form").elements.visit_date.value=new Date().toISOString().slice(0,10);visitDialog.showModal()});
+byId("visit-list").addEventListener("click",event=>{
+  const target=event.target.closest('button[data-action="add-prescription"]');if(!target)return;
+  byId("prescription-form").reset();byId("prescription-form").dataset.visitId=target.dataset.id;prescriptionDialog.showModal();
+});
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>byId(b.dataset.close).close()));
+rows.addEventListener("click",async event=>{
+  const target=event.target.closest("button[data-action]");if(!target)return;
+  const id=Number(target.dataset.id),patient=state.patients.find(p=>p.id===id);
+  if(target.dataset.action==="view")await loadPatientDetail(id);
+  if(target.dataset.action==="edit"&&patient)openPatientForm(patient);
+  if(target.dataset.action==="delete"&&patient&&confirm(`Delete ${patient.name} and their linked visits and appointments?`)){
+    try{await request(`/patients/${id}`,{method:"DELETE"});if(state.selectedPatientId===id){byId("patient-detail").hidden=true;state.selectedPatientId=null}await loadPatients();await loadAppointments()}
+    catch(error){alert(`Could not delete patient: ${error.message}`)}
+  }
+});
+byId("patient-form").addEventListener("submit",async event=>{
+  event.preventDefault();const form=event.currentTarget,data=Object.fromEntries(new FormData(form));
+  for(const key of Object.keys(data))if(data[key]==="")data[key]=null;
+  data.phone=normalizePhone(data.phone||"")||null;
+  const id=state.editingPatientId,button=form.querySelector('[type="submit"]');button.disabled=true;
+  try{await request(id?`/patients/${id}`:"/patients",{method:id?"PUT":"POST",body:JSON.stringify(data)});patientDialog.close();await loadPatients();if(id)await loadPatientDetail(id);await loadAppointments()}
+  catch(error){alert(`Could not save patient: ${error.message}`)}
+  finally{button.disabled=false}
+});
+byId("visit-form").addEventListener("submit",async event=>{
+  event.preventDefault();const form=event.currentTarget,data=Object.fromEntries(new FormData(form));
+  for(const key of Object.keys(data))if(data[key]==="")data[key]=null;
+  const button=form.querySelector('[type="submit"]');button.disabled=true;
+  try{await request(`/patients/${state.selectedPatientId}/visits`,{method:"POST",body:JSON.stringify(data)});visitDialog.close();await loadPatientDetail(state.selectedPatientId)}
+  catch(error){alert(`Could not save visit: ${error.message}`)}
+  finally{button.disabled=false}
+});
+byId("prescription-form").addEventListener("submit",async event=>{
+  event.preventDefault();const form=event.currentTarget,data=Object.fromEntries(new FormData(form));
+  for(const key of Object.keys(data))if(data[key]==="")data[key]=null;
+  const button=form.querySelector('[type="submit"]');button.disabled=true;
+  try{await request(`/visits/${form.dataset.visitId}/prescriptions`,{method:"POST",body:JSON.stringify(data)});prescriptionDialog.close();await loadPatientDetail(state.selectedPatientId)}
+  catch(error){alert(`Could not save prescription: ${error.message}`)}
+  finally{button.disabled=false}
+});
+byId("appointment-form").addEventListener("submit",async event=>{
+  event.preventDefault();const form=event.currentTarget,data=Object.fromEntries(new FormData(form));
+  data.patient_id=Number(data.patient_id);data.appt_time=new Date(data.appt_time).toISOString();
+  const submit=form.querySelector('[type="submit"]');submit.disabled=true;
+  try{await request("/appointments",{method:"POST",body:JSON.stringify(data)});form.reset();await loadAppointments()}
+  catch(error){alert(`Could not schedule appointment: ${error.message}`)}
+  finally{submit.disabled=false}
+});
+byId("appointment-rows").addEventListener("change",async event=>{
+  const select=event.target.closest("select[data-appointment-id]");if(!select)return;
+  select.disabled=true;
+  try{await request(`/appointments/${select.dataset.appointmentId}`,{method:"PATCH",body:JSON.stringify({status:select.value})});await loadAppointments()}
+  catch(error){alert(`Could not update appointment: ${error.message}`);await loadAppointments()}
+  finally{select.disabled=false}
+});
+byId("chat-form").addEventListener("submit",async event=>{
+  event.preventDefault();const message=question.value.trim();if(!message||send.disabled)return;
+  question.value="";addMessage(message,"u");const pending=addMessage("Checking the records…","b");send.disabled=true;
+  try{
+    const result=await request("/chat",{method:"POST",body:JSON.stringify({message,history:state.history})});
+    renderAssistantReply(pending,result.reply);
+    renderSourceChips(pending,result.sources);
+    state.history.push({role:"user",content:message},{role:"assistant",content:result.reply});
+  }catch(error){pending.textContent=`Assistant unavailable: ${error.message}`}
+  finally{send.disabled=false;question.focus()}
+});
+function renderSuggestions(){
+  const suggestions=["Show upcoming scheduled appointments","Find visits mentioning a diagnosis"];
+  for(const patient of state.patients.slice(0,2)){
+    suggestions.push(`Summarize ${patient.name}'s recorded history`);
+  }
+  const container=byId("chips");
+  container.replaceChildren();
+  for(const text of suggestions){
+    const chip=document.createElement("button");
+    chip.type="button";
+    chip.textContent=text;
+    chip.addEventListener("click",()=>{
+      question.value=text;
+      byId("chat-form").requestSubmit();
+    });
+    container.appendChild(chip);
+  }
+}
+
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+const voiceButton=byId("voice-input"),voiceStatus=byId("voice-status");
+let recognizer=null;
+if(SpeechRecognition){
+  recognizer=new SpeechRecognition();
+  recognizer.lang="en-US";
+  recognizer.continuous=false;
+  recognizer.interimResults=false;
+  recognizer.onstart=()=>{voiceButton.classList.add("listening");voiceButton.setAttribute("aria-label","Stop voice input");voiceStatus.textContent="Listening… Review the transcript before sending."};
+  recognizer.onresult=event=>{
+    const transcript=event.results?.[0]?.[0]?.transcript?.trim();
+    if(transcript){
+      question.value=[question.value.trim(),transcript].filter(Boolean).join(" ").slice(0,2000);
+      voiceStatus.textContent="Transcript added. Review it, then press Send.";
+      question.focus();
+    }
+  };
+  recognizer.onerror=event=>{voiceStatus.textContent=`Voice input error: ${event.error||"recognition failed"}. You can type your question instead.`};
+  recognizer.onend=()=>{voiceButton.classList.remove("listening");voiceButton.setAttribute("aria-label","Start voice input")};
+  voiceButton.addEventListener("click",()=>{
+    try{
+      if(voiceButton.classList.contains("listening"))recognizer.stop();
+      else{voiceStatus.textContent="Your browser may use its speech service to transcribe audio.";recognizer.start()}
+    }catch(error){voiceStatus.textContent=`Could not start voice input: ${error.message}`}
+  });
+}else{
+  voiceButton.disabled=true;
+  voiceButton.title="Voice input is not supported in this browser.";
+  voiceStatus.textContent="Voice input is unavailable in this browser. You can still type.";
+}
+
+const mobile=()=>matchMedia("(max-width:900px)").matches;
+if(mobile())document.body.classList.add("chat-closed");
+byId("side-toggle").addEventListener("click",()=>document.body.classList.toggle(mobile()?"side-open":"side-collapsed"));
+byId("scrim").addEventListener("click",()=>document.body.classList.remove("side-open"));
+byId("chat-toggle").addEventListener("click",()=>{
+  document.body.classList.toggle("chat-closed");
+  if(!document.body.classList.contains("chat-closed"))question.focus();
+});
+byId("chat-close").addEventListener("click",()=>document.body.classList.add("chat-closed"));
+byId("theme-toggle").addEventListener("click",()=>{
+  const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
+  document.documentElement.dataset.theme=next;
+  try{localStorage.setItem("medai-theme",next)}catch{}
+});
+document.querySelectorAll(".nav a").forEach(link=>link.addEventListener("click",event=>{
+  if(link.dataset.chat){
+    event.preventDefault();
+    document.body.classList.remove("chat-closed");
+    question.focus();
+  }else{
+    document.querySelectorAll(".nav a").forEach(item=>item.classList.remove("active"));
+    link.classList.add("active");
+  }
+  document.body.classList.remove("side-open");
+}));
+loadPatients();loadAppointments();
+</script>
+</body>
+</html>
